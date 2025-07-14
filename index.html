@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YouTube Video Downloader by Farel</title>
+ <style>
+   * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  position: relative;
+  background: #0f0f1a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 60px;
+}
+
+/* Background Canvas */
+canvas#network {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+/* Navbar */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 3;
+  padding: 10px 0;
+  text-align: center;
+}
+
+nav button {
+  background: transparent;
+  border: 1px solid #00fff7;
+  color: #00fff7;
+  padding: 10px 20px;
+  margin: 0 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+nav button:hover {
+  background: #00fff7;
+  color: #000;
+}
+
+/* Section Style (Semua Halaman) */
+section {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 60px);
+  padding: 20px;
+  overflow-y: auto;
+  display: none;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 0;
+}
+
+/* Yang aktif saja muncul */
+section.active {
+  display: block;
+}
+
+/* Scrollbar Style */
+section::-webkit-scrollbar {
+  width: 3px;
+}
+
+section::-webkit-scrollbar-thumb {
+  background: #00fff7;
+  border-radius: 10px;
+}
+
+/* Home & About tetap scroll */
+#home, #about {
+  /* inherit style sudah scrollable dari section */
+}
+
+/* Contact tidak perlu diubah jika pakai geser manual < > di dalam */
+#contact {
+  text-align: center;
+}
+
+/* Heading */
+h1 {
+  color: #00fff7;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Input */
+input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* Download Button */
+button.download {
+  width: 100%;
+  padding: 12px;
+  background: #00fff7;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #000;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button.download:hover {
+  background: #00cfc0;
+}
+
+/* Result Box */
+.result {
+  margin-top: 20px;
+  background: #1e1e2f;
+  padding: 15px;
+  border-radius: 8px;
+  display: none;
+}
+
+.result a {
+  color: #00ffcc;
+  text-decoration: none;
+}
+
+/* Loading Spinner */
+.loading {
+  margin-top: 15px;
+  text-align: center;
+  display: none;
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid #00fff7;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Loading Text */
+.loading-text {
+  margin-top: 10px;
+  font-style: italic;
+  color: #aaa;
+}
+
+/* Paragraf */
+p {
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+ </style>
+
+</head>
+<body>
+  <!-- Canvas background -->
+  <canvas id="network"></canvas>
+
+  <!-- Navigasi -->
+  <nav>
+    <button onclick="showSection('home')">Home</button>
+    <button onclick="showSection('about')">About</button>
+    <button onclick="showSection('contact')">Contact</button>
+  </nav>
+
+  <!-- Halaman Home -->
+  <section id="home" class="active">
+    <h1>YouTube Video Downloader</h1>
+    <p>Website ini dibuat untuk membantu pengguna mengunduh video dari YouTube secara mudah dan cepat. Dikembangkan oleh Farel dengan tampilan interaktif dan teknologi modern.</p>
+    <p>Cukup tempelkan link video YouTube kamu, klik Download, dan nikmati videonya secara offline.</p>
+    <p>selamat mencoba</p>
+
+    <input type="text" id="ytLink" placeholder="Tempelkan link YouTube di sini" />
+    <button class="download" onclick="downloadVideo()">Download</button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Memproses video, mohon tunggu...</div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </section>
+
+  <!-- Halaman About -->
+  <section id="about">
+    <h1>Tentang Farel</h1>
+    <p>Farel adalah seorang pengembang muda yang tertarik dengan dunia teknologi, pemrograman, dan keamanan digital.</p>
+    <p>Ia membangun berbagai tools dan aplikasi yang membantu banyak orang, salah satunya adalah web downloader ini.</p>
+    <p>Fokus Farel adalah membuat solusi yang ringan, cepat, dan modern untuk digunakan di berbagai perangkat.</p>
+    <h1>YouTube Video Downloader by Farel</h1>
+
+<p>Website ini dibuat sebagai alat bantu pengguna untuk mengunduh video dari platform YouTube secara praktis dan cepat. Dibangun dengan tampilan modern dan interaktif, website ini dirancang agar nyaman digunakan di berbagai perangkat, khususnya di smartphone.</p>
+
+<p><strong>🔹 Teknologi & Bahan yang Digunakan:</strong></p>
+
+<p><strong>Bahasa Pemrograman:</strong><br>
+- HTML (untuk struktur halaman)<br>
+- CSS (untuk desain dan tampilan)<br>
+- JavaScript (untuk logika interaktif, animasi, dan integrasi API)</p>
+
+<p><strong>Animasi Latar:</strong><br>
+Dibuat menggunakan HTML5 Canvas dan JavaScript, dengan efek visual seperti partikel jaringan (network particles) agar terlihat modern dan dinamis.</p>
+
+<p><strong>Desain Responsif:</strong><br>
+Disesuaikan agar dapat dibuka dengan baik di perangkat mobile maupun desktop.</p>
+
+<p><strong>UI (User Interface):</strong><br>
+Menggunakan gaya minimalis dengan warna neon biru untuk kesan futuristik dan high-tech.</p>
+
+<p><strong>🔹 Tools & Aplikasi yang Dipakai:</strong></p>
+
+<p><strong>Acode (Android App):</strong><br>
+Digunakan sebagai code editor utama langsung dari HP Android.<br>
+Acode sangat membantu karena ringan, mendukung syntax highlighting, dan bisa digunakan untuk preview langsung hasil coding.</p>
+
+<p><strong>Browser:</strong><br>
+Chrome & Kiwi Browser dipakai untuk testing tampilan dan fungsionalitas.</p>
+
+<p><strong>Hosting:</strong><br>
+Menggunakan layanan Vercel atau Netlify (gratis) yang mendukung hosting static web berbasis HTML, CSS, dan JS.</p>
+
+<p><strong>🔹 Kelebihan Website Ini:</strong><br>
+✅ Tampilan interaktif & modern<br>
+✅ Dibuat full dari HP menggunakan aplikasi sederhana<br>
+✅ Tidak memerlukan instalasi aplikasi tambahan<br>
+✅ Mendukung integrasi API YouTube Downloader (bisa disambungkan sendiri oleh pengguna)<br>
+✅ Loading ringan dan cepat diakses</p>
+
+<p><strong>🔹 Kekurangan Website Ini:</strong><br>
+❌ Tidak memiliki server backend sendiri<br>
+❌ Bergantung pada layanan API pihak ketiga untuk proses download video<br>
+❌ Jika API down atau error, maka download tidak bisa dilakukan<br>
+❌ Fitur masih terbatas untuk download saja, belum mendukung konversi format</p>
+
+<p><strong>🔹 Device yang Dipakai:</strong><br>
+📱 Realme C21Y (Android)<br>
+✏️ Aplikasi Acode sebagai text/code editor<br>
+🌐 Browser Mobile (untuk testing)</p>
+
+<p><strong>🔹 Tujuan Dibuatnya Website Ini:</strong><br>
+Website ini dibuat oleh Farel, seorang pengembang muda yang ingin belajar lebih dalam tentang pembuatan website, penggunaan API, dan pengembangan aplikasi berbasis web langsung dari perangkat mobile.<br>
+Dengan semangat belajar dan eksplorasi, diharapkan website ini bisa menjadi contoh bahwa membuat website tidak harus pakai laptop/PC, cukup dengan HP dan kemauan belajar.</p>
+  </section>
+
+  <!-- Halaman Contact dengan Slider -->
+  <section id="contact">
+    <h1>Kontak</h1>
+
+    <div style="position: relative; max-width: 300px; margin: auto;">
+  <button onclick="prevContact()" style="position: absolute; left: -20px; top: 50%; transform: translateY(-50%);"> &lt; </button>
+  <div id="contactSlider" style="width: 100%; overflow: hidden;">
+    <div id="contactInner" style="display: flex; transition: transform 0.5s;">
+      <div style="min-width: 100%; text-align: center;">
+        <p><strong>Nama:</strong> Farel</p>
+      </div>
+      <div style="min-width: 100%; text-align: center;">
+        <p><strong>WhatsApp:</strong> <a href="https://wa.me/6285398058361" target="_blank" style="color: #00ffcc;">+6285398058361</a></p>
+      </div>
+      <div style="min-width: 100%; text-align: center;">
+        <p><strong>Email:</strong> <a href="mailto:farelafriansa@gmail.com" style="color: #00ffcc;">farelafriansa@gmail.com</a></p>
+      </div>
+    </div>
+  </div>
+  <button onclick="nextContact()" style="position: absolute; right: -20px; top: 50%; transform: translateY(-50%);"> &gt; </button>
+</div>
+  </section>
+<script>
+  // Navigasi antar section
+  function showSection(id) {
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // Canvas jaringan visual
+  const canvas = document.getElementById("network");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const nodes = Array.from({ length: 70 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.8,
+    vy: (Math.random() - 0.5) * 0.8,
+    radius: Math.random() * 2 + 1
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < nodes.length; i++) {
+      const n1 = nodes[i];
+      ctx.beginPath();
+      ctx.arc(n1.x, n1.y, n1.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#00fff7";
+      ctx.fill();
+
+      for (let j = i + 1; j < nodes.length; j++) {
+        const n2 = nodes[j];
+        const dx = n1.x - n2.x;
+        const dy = n1.y - n2.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(n1.x, n1.y);
+          ctx.lineTo(n2.x, n2.y);
+          ctx.strokeStyle = "rgba(0, 255, 255, 0.1)";
+          ctx.stroke();
+        }
+      }
+
+      n1.x += n1.vx;
+      n1.y += n1.vy;
+
+      if (n1.x < 0 || n1.x > canvas.width) n1.vx *= -1;
+      if (n1.y < 0 || n1.y > canvas.height) n1.vy *= -1;
+    }
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  // Downloader logic pakai API asli
+  const loading = document.getElementById('loading');
+const result = document.getElementById('result');
+
+function downloadVideo() {
+  const link = document.getElementById('ytLink').value.trim();
+  if (!link) {
+    alert('Silakan masukkan link YouTube.');
+    return;
+  }
+
+  result.style.display = 'none';
+  loading.style.display = 'block';
+  result.innerHTML = '';
+
+  fetch(`https://ab-ytdlv2.abrahamdw882.workers.dev/?url=${encodeURIComponent(link)}&&format=720`)
+    .then(response => response.json())
+    .then(data => {
+      loading.style.display = 'none';
+
+      if (data.success && data.data && data.data.title && data.data.downloadUrl) {
+        result.innerHTML = `
+          <p><strong>Judul:</strong> ${data.data.title}</p>
+          <a href="${data.data.downloadUrl}" download>PENCET UNTUK MENDOWNLOAD</a>
+        `;
+        result.style.display = 'block';
+      } else {
+        result.innerHTML = `<p>❌ Video tidak ditemukan atau API bermasalah.</p>`;
+        result.style.display = 'block';
+      }
+    })
+    .catch(err => {
+      loading.style.display = 'none';
+      result.innerHTML = `<p>❌ Terjadi kesalahan saat mengambil data. Silakan coba lagi nanti.</p>`;
+      result.style.display = 'block';
+      console.error(err);
+    });
+}
+
+  // Contact Slider logic
+  let contactSlide = 0;
+  const contactInner = document.getElementById('contactInner');
+
+  function updateContactSlider() {
+    contactInner.style.transform = `translateX(-${contactSlide * 100}%)`;
+  }
+
+  function nextContact() {
+    if (contactSlide < 2) contactSlide++;
+    updateContactSlider();
+  }
+
+  function prevContact() {
+    if (contactSlide > 0) contactSlide--;
+    updateContactSlider();
+  }
+</script>
+  
+</body>
+</html>
